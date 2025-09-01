@@ -1,0 +1,22 @@
+name = "subonlybot"
+main = "src/index.ts"
+compatibility_date = "2024-04-05"
+
+[vars]
+# Paste ONLY the result field from getMe
+BOT_INFO = """
+{"id":7715850794,
+ "is_bot":true,
+ "first_name":"submission_only",
+ "username":"submission_only_bot",
+ "can_join_groups":true,
+ "can_read_all_group_messages":false,
+ "supports_inline_queries":false,
+ "can_connect_to_business":false,
+ "has_main_web_app":false
+}
+"""
+
+[observability]
+enabled = true
+head_sampling_rate = 1

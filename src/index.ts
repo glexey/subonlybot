@@ -1,18 +1,17 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Bind resources to your worker in `wrangler.jsonc`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
+// src/index.ts
+import { Bot, webhookCallback } from "grammy";
+export interface Env { BOT_TOKEN: string; SECRET_TOKEN?: string; }
 
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
-		return new Response('Hello World!');
-	},
-} satisfies ExportedHandler<Env>;
+  async fetch(request: Request, env: Env) {
+    const bot = new Bot(env.BOT_TOKEN);
+
+    bot.command("start", (ctx) => ctx.reply("Hello from Workers + grammY 👋"));
+
+    // If you want secret verification, pass the SAME value you used in setWebhook:
+    const handler = webhookCallback(bot, "cloudflare-mod", {
+      secretToken: env.SECRET_TOKEN, // undefined = no check
+    });
+    return handler(request);
+  },
+};
