@@ -25,11 +25,21 @@ export default {
       if (threadId) {
         const topicName = await env.TOPIC_DATA.get(threadId.toString());
         if (topicName === "#submissions") {
-          const userId = ctx.from.id;
-          const messageText = ctx.message.text;
-          if (messageText) {
-            console.log(`Sending message to userId: ${userId} in topic: ${topicName}`);
-            await ctx.api.sendMessage(userId, messageText);
+          const message = ctx.message;
+          const isValid =
+            message.photo !== undefined &&
+            message.media_group_id === undefined &&
+            message.caption !== undefined &&
+            message.caption.length < 300;
+
+          if (isValid) {
+            console.log(`Valid submission from userId: ${ctx.from.id}`);
+          } else {
+            await ctx.api.forwardMessage(ctx.from.id, ctx.chat.id, message.message_id);
+
+            const rules = `Your submission to the #submissions topic was invalid. Please follow these rules:\n- You must submit exactly one image.\n- The image must have a description less than 300 characters.`;
+            await ctx.api.sendMessage(ctx.from.id, rules);
+            await ctx.api.deleteMessage(ctx.chat.id, message.message_id);
           }
         }
       }
