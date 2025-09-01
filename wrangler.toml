@@ -20,3 +20,8 @@ BOT_INFO = """
 [observability]
 enabled = true
 head_sampling_rate = 1
+
+[[kv_namespaces]]
+binding = "TOPIC_DATA"
+id = "93d1fd250c9a4c7f85d52d5998eb3232"
+preview_id = "93d1fd250c9a4c7f85d52d5998eb3232"
