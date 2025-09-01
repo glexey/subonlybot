@@ -26,20 +26,31 @@ export default {
         const topicName = await env.TOPIC_DATA.get(threadId.toString());
         if (topicName === "#submissions") {
           const message = ctx.message;
-          const isValid =
-            message.photo !== undefined &&
-            message.media_group_id === undefined &&
-            message.caption !== undefined &&
-            message.caption.length < 300;
+          const errors: string[] = [];
 
-          if (isValid) {
-            console.log(`Valid submission from userId: ${ctx.from.id}`);
+          if (message.photo === undefined) {
+            errors.push("- Ваше сообщение должно содержать изображение.");
           } else {
+            if (message.media_group_id !== undefined) {
+              errors.push("- Вы можете прикрепить только одно изображение.");
+            }
+            if (message.caption === undefined) {
+              errors.push("- Изображение должно содержать описание.");
+            } else if (message.caption.length <= 120) {
+              errors.push("- Описание должно быть длиннее 120 символов.");
+            }
+          }
+
+          if (errors.length > 0) {
             await ctx.api.forwardMessage(ctx.from.id, ctx.chat.id, message.message_id);
 
-            const rules = `Your submission to the #submissions topic was invalid. Please follow these rules:\n- You must submit exactly one image.\n- The image must have a description less than 300 characters.`;
-            await ctx.api.sendMessage(ctx.from.id, rules);
+            const errorHeader = `Ваша публикация в топике #submissions нарушает следующие правила:\n`;
+            const errorMessage = errorHeader + errors.join("\n");
+
+            await ctx.api.sendMessage(ctx.from.id, errorMessage);
             await ctx.api.deleteMessage(ctx.chat.id, message.message_id);
+          } else {
+            console.log(`Valid submission from user: ${ctx.from.id}`);
           }
         }
       }
