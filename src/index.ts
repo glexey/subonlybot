@@ -1,5 +1,5 @@
 // src/index.ts
-import { Bot, webhookCallback } from "grammy";
+import { Bot, webhookCallback, GrammyError } from "grammy";
 export interface Env {
   BOT_TOKEN: string;
   SECRET_TOKEN?: string;
@@ -59,18 +59,30 @@ export default {
           }
 
           if (errors.length > 0) {
-            // await ctx.api.forwardMessage(ctx.from.id, ctx.chat.id, message.message_id);
+            try {
+              // await ctx.api.forwardMessage(ctx.from.id, ctx.chat.id, message.message_id);
 
-            const errorHeader = `Ваша публикация в топике ${topicName} нарушает следующие правила:\n`;
-            const errorMessage = errorHeader + errors.join("\n");
+              const errorHeader = `Ваша публикация в топике ${topicName} нарушает следующие правила:\n`;
+              const errorMessage = errorHeader + errors.join("\n");
 
-            // await ctx.api.sendMessage(ctx.from.id, errorMessage);
-            await ctx.api.deleteMessage(ctx.chat.id, message.message_id);
+              // await ctx.api.sendMessage(ctx.from.id, errorMessage);
+              await ctx.api.deleteMessage(ctx.chat.id, message.message_id);
+            } catch (err) {
+              if (err instanceof GrammyError) {
+                console.error("Telegram API error:", err);
+              } else {
+                console.error("Unexpected error:", err);
+              }
+            }
           } else {
             console.log(`Valid submission from user: ${userIdentifier}`);
           }
         }
       }
+    });
+
+    bot.on("message", (ctx) => {
+      console.log("Unknown message received:", JSON.stringify(ctx.message, null, 2));
     });
 
     // If you want secret verification, pass the SAME value you used in setWebhook:
