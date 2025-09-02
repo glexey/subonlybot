@@ -4,11 +4,13 @@ export interface Env {
   BOT_TOKEN: string;
   SECRET_TOKEN?: string;
   TOPIC_DATA: KVNamespace;
+  SUBMISSION_TOPICS?: string;
 }
 
 export default {
   async fetch(request: Request, env: Env) {
     const bot = new Bot(env.BOT_TOKEN);
+    const submissionTopics = (env.SUBMISSION_TOPICS || "#submissions").split(",");
 
     bot.command("start", (ctx) => ctx.reply("Hello from Workers + grammY 👋"));
 
@@ -21,13 +23,25 @@ export default {
       }
     });
 
+    bot.on("message:forum_topic_edited", async (ctx) => {
+      const topicName = ctx.message.forum_topic_edited.name;
+      if (topicName === undefined) { return; }
+      const threadId = ctx.message.message_thread_id;
+      const groupId = ctx.chat.id;
+      if (threadId) {
+        await env.TOPIC_DATA.put(`${groupId}_${threadId}`, topicName);
+      }
+    });
+
     bot.on("message:is_topic_message", async (ctx) => {
       const threadId = ctx.message.message_thread_id;
       const groupId = ctx.chat.id;
       if (threadId) {
-        console.log(`Message from user ${ctx.from.id} in group ${groupId} thread ${threadId}`);
-        const topicName = await env.TOPIC_DATA.get(`${groupId}_${threadId}`);
-        if (topicName === "#submissions") {
+        const userIdentifier = ctx.from.username ? `@${ctx.from.username}` : ctx.from.id;
+        console.log(`Message from user ${userIdentifier} in group ${groupId} thread ${threadId}`);
+        let topicName = await env.TOPIC_DATA.get(`${groupId}_${threadId}`);
+
+        if (topicName && submissionTopics.includes(topicName)) {
           const message = ctx.message;
           const errors: string[] = [];
 
@@ -39,21 +53,21 @@ export default {
             }
             if (message.caption === undefined) {
               errors.push("- Изображение должно содержать описание.");
-            } else if (message.caption.length <= 120) {
-              errors.push("- Описание должно быть длиннее 120 символов.");
+            } else if (message.caption.length <= 50) {
+              errors.push("- Описание должно быть длиннее 50 символов.");
             }
           }
 
           if (errors.length > 0) {
-            await ctx.api.forwardMessage(ctx.from.id, ctx.chat.id, message.message_id);
+            // await ctx.api.forwardMessage(ctx.from.id, ctx.chat.id, message.message_id);
 
-            const errorHeader = `Ваша публикация в топике #submissions нарушает следующие правила:\n`;
+            const errorHeader = `Ваша публикация в топике ${topicName} нарушает следующие правила:\n`;
             const errorMessage = errorHeader + errors.join("\n");
 
-            await ctx.api.sendMessage(ctx.from.id, errorMessage);
+            // await ctx.api.sendMessage(ctx.from.id, errorMessage);
             await ctx.api.deleteMessage(ctx.chat.id, message.message_id);
           } else {
-            console.log(`Valid submission from user: ${ctx.from.id}`);
+            console.log(`Valid submission from user: ${userIdentifier}`);
           }
         }
       }

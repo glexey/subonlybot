@@ -35,7 +35,7 @@ preview_id = "your-preview-id-here"
 
 ### 4. Set Secrets
 
-The bot requires two secrets:
+The bot requires the following secrets:
 
 *   `BOT_TOKEN`: Your Telegram bot token.
 *   `SECRET_TOKEN`: A secret token for webhook verification.
@@ -47,7 +47,13 @@ npx wrangler secret put BOT_TOKEN
 npx wrangler secret put SECRET_TOKEN
 ```
 
-### 5. Deploy
+### 5. Configure Environment Variables
+
+Open the `wrangler.toml` file and configure the following variables in the `[vars]` section:
+
+* `SUBMISSION_TOPICS`: a comma-separated list of topic names to be considered for submission validation. Defaults to `#submissions`.
+
+### 6. Deploy
 
 Deploy the bot to Cloudflare Workers:
 
