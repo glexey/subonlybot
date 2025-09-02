@@ -15,15 +15,18 @@ export default {
     bot.on("message:forum_topic_created", async (ctx) => {
       const topicName = ctx.message.forum_topic_created.name;
       const threadId = ctx.message.message_thread_id;
+      const groupId = ctx.chat.id;
       if (threadId) {
-        await env.TOPIC_DATA.put(threadId.toString(), topicName);
+        await env.TOPIC_DATA.put(`${groupId}_${threadId}`, topicName);
       }
     });
 
     bot.on("message:is_topic_message", async (ctx) => {
       const threadId = ctx.message.message_thread_id;
+      const groupId = ctx.chat.id;
       if (threadId) {
-        const topicName = await env.TOPIC_DATA.get(threadId.toString());
+        console.log(`Message from user ${ctx.from.id} in group ${groupId} thread ${threadId}`);
+        const topicName = await env.TOPIC_DATA.get(`${groupId}_${threadId}`);
         if (topicName === "#submissions") {
           const message = ctx.message;
           const errors: string[] = [];
