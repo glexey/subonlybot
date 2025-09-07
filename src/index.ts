@@ -23,16 +23,6 @@ export default {
       }
     });
 
-    bot.on("message:forum_topic_edited", async (ctx) => {
-      const topicName = ctx.message.forum_topic_edited.name;
-      if (topicName === undefined) { return; }
-      const threadId = ctx.message.message_thread_id;
-      const groupId = ctx.chat.id;
-      if (threadId) {
-        await env.TOPIC_DATA.put(`${groupId}_${threadId}`, topicName);
-      }
-    });
-
     bot.on("message:is_topic_message", async (ctx) => {
       const threadId = ctx.message.message_thread_id;
       const groupId = ctx.chat.id;
