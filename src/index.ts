@@ -38,24 +38,22 @@ export default {
           if (message.photo === undefined) {
             errors.push("- Ваше сообщение должно содержать изображение.");
           } else {
-            if (message.media_group_id !== undefined) {
-              errors.push("- Вы можете прикрепить только одно изображение.");
-            }
-            if (message.caption === undefined) {
-              errors.push("- Изображение должно содержать описание.");
-            } else if (message.caption.length <= 50) {
-              errors.push("- Описание должно быть длиннее 50 символов.");
-            }
+            // if (message.media_group_id !== undefined) {
+            //   errors.push("- Вы можете прикрепить только одно изображение.");
+            // }
+            // if (message.caption === undefined) {
+            //   errors.push("- Изображение должно содержать описание.");
+            // }
           }
 
           if (errors.length > 0) {
             try {
               // await ctx.api.forwardMessage(ctx.from.id, ctx.chat.id, message.message_id);
+              // await ctx.api.sendMessage(ctx.from.id, errorMessage);
 
               const errorHeader = `Ваша публикация в топике ${topicName} нарушает следующие правила:\n`;
               const errorMessage = errorHeader + errors.join("\n");
-
-              // await ctx.api.sendMessage(ctx.from.id, errorMessage);
+              console.log("Deleting message:", errorMessage)
               await ctx.api.deleteMessage(ctx.chat.id, message.message_id);
             } catch (err) {
               if (err instanceof GrammyError) {
